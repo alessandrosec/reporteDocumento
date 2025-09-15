@@ -1,37 +1,55 @@
-const db = require("../models");
-const Estudiante = db.estudiante;
-const Op = db.Sequelize.Op;
+const db = require("../models");        // Importa TODOS los modelos
+const Estudiante = db.estudiante;       // Específicamente el modelo Estudiante  
+const Op = db.Sequelize.Op;            // Operadores de Sequelize (LIKE, WHERE, etc.)
 
-// Crear nuevo estudiante
+
+// =============== 1 CREAR ESTUDIANTE (exports.create) ==================
+
 exports.create = (req, res) => {
-  const { primer_nombre, segundo_nombre, primer_apellido } = req.body;
 
+  // PASO 1: Extraer datos del frontend
+  const { primer_nombre, segundo_nombre, primer_apellido } = req.body;   //oma los datos que llegan en el cuerpo de la petición (req.body).
+
+
+  // PASO 2: Validar datos obligatorios
   if (!primer_nombre || !primer_apellido) {
     res.status(400).send({
       message: "primer_nombre y primer_apellido son obligatorios."
     });
-    return;
+    return;  // Para aquí si faltan datos
   }
 
+
+  // PASO 3: Preparar objeto estudiante
   const estudiante = {
     primer_nombre,
     segundo_nombre: segundo_nombre || "",
     primer_apellido
   };
 
+  // PASO 4: Guardar en base de datos
   Estudiante.create(estudiante)
-    .then(data => res.send(data))
-    .catch(err => {
+    .then(data => res.send(data))          // ✅ Éxito: enviar estudiante creado
+    .catch(err => {                        // ❌ Error: enviar mensaje de error
       res.status(500).send({
         message: err.message || "Error al crear estudiante."
       });
     });
 };
 
-// Obtener todos los estudiantes
+/*🎯 Funcionalidad:
+
+- Recibe datos del frontend: { primer_nombre: "Juan", primer_apellido: "Pérez" }
+- Valida que los campos obligatorios existan
+- Guarda en Oracle y responde al frontend*/
+
+//----------------------------------------------------------------------------------------------------
+
+
+// =============== 2. OBTENER TODOS LOS ESTUDIANTES (exports.getAll) ==================
 exports.getAll = (req, res) => {
-  Estudiante.findAll()
-    .then(data => res.send(data))
+  Estudiante.findAll()                        // SELECT * FROM estudiantes
+    .then(data => res.send(data))             // Enviar lista completa al frontend
     .catch(err => {
       res.status(500).send({
         message: "Error ocurrido al obtener estudiantes."
@@ -39,7 +57,7 @@ exports.getAll = (req, res) => {
     });
 };
 
-// Obtener estudiante por ID
+// =============== 3. OBTENER ESTUDIANTE por ID (exports.getByUd) ==================
 exports.getById = (req, res) => {
   const id = req.params.id;
 
