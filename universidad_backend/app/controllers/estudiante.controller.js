@@ -41,7 +41,13 @@ exports.create = (req, res) => {
 
 - Recibe datos del frontend: { primer_nombre: "Juan", primer_apellido: "Pérez" }
 - Valida que los campos obligatorios existan
-- Guarda en Oracle y responde al frontend*/
+- Guarda en Oracle y responde al frontend
+nserta el estudiante en la base de datos.
+
+- Si todo sale bien, devuelve el estudiante creado.
+- Si ocurre un error, responde con 500 Internal Server Error.
+*/
+
 
 //----------------------------------------------------------------------------------------------------
 
@@ -56,6 +62,7 @@ exports.getAll = (req, res) => {
       });
     });
 };
+
 
 // =============== 3. OBTENER ESTUDIANTE por ID (exports.getByUd) ==================
 exports.getById = (req, res) => {
