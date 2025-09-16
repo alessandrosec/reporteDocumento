@@ -1,6 +1,3 @@
-// =================== SERVICE VALIDACIÓN DE CURSOS (INTERMEDIA) ===================
-// Path: universidad_backend/app/services/reportes/validacionCurso.service.js
-
 const db = require("../../models");
 const { Op } = db.Sequelize;
 
