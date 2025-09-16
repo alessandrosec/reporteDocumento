@@ -1,6 +1,3 @@
-// =================== RUTAS VALIDACIÓN DE CURSOS ===================
-// Path: universidad_backend/app/routes/reportes.routes.js
-
 const express = require('express');
 const router = express.Router();
 
@@ -127,22 +124,7 @@ router.get('/validacion-cursos/:id_estudiante/pdf', validacionCursoController.ge
  */
 router.get('/validacion-cursos/:id_estudiante/aprobados', validacionCursoController.getCursosAprobados);
 
-/**
- * @swagger
- * /api/reportes/validacion-cursos/{id_estudiante}/pendientes:
- *   get:
- *     summary: Obtener solo los cursos pendientes de un estudiante
- *     tags: [Reportería - Validación de Cursos]
- */
-router.get('/validacion-cursos/:id_estudiante/pendientes', validacionCursoController.getCursosPendientes);
 
-/**
- * @swagger
- * /api/reportes/validacion-cursos/{id_estudiante}/estadisticas:
- *   get:
- *     summary: Obtener estadísticas rápidas de validación
- *     tags: [Reportería - Validación de Cursos]
- */
 router.get('/validacion-cursos/:id_estudiante/estadisticas', validacionCursoController.getEstadisticasValidacion);
 
 module.exports = router;
