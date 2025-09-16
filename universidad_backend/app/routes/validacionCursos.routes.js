@@ -3,6 +3,6 @@ module.exports = app => {
     var router = require("express").Router();
 
     router.get("/validacion-cursos/:id");
-    router.get("/cursos-aprobados/:id", soloEstudiantesYAdmin.getCursosAprobados);
+    router.get("/cursos-aprobados/:id", soloEstudiantes.getCursosAprobados);
     router.get("/validacion-cursos/id/pdf")
 }
