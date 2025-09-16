@@ -1,21 +1,22 @@
-const db = require("..models");
-const Estudiante = db.estudiantes;
+// =================== CONTROLADOR SIMPLE - ESTILO ORIGINAL CORREGIDO ===================
+//universidad_backend/app/controllers/validacionCurso.controller.js
+
+const db = require("../models"); 
+const Estudiante = db.estudiantes; 
 const Usuario = db.usuarios;
 const Curso = db.cursos;
-const inscripcion = db.inscripciones;
-const calificacion = db.calificaciones;
-const Op = db.Sequelite.Op;
+const Inscripcion = db.inscripciones; 
+const Calificacion = db.calificaciones; 
+const Op = db.Sequelize.Op;
 
-
-// =============== 1 OBTENER RESUMEN DE VALIDACIÓN DE CURSOS POR ESTUDIANTE ==================
-// GET /api/reportes/validacioncursos/:id_estudiante
-
-exports.getValidacionCurso = async (requestAnimationFrame, res) => {
+// =============== 1. OBTENER RESUMEN DE VALIDACIÓN DE CURSOS POR ESTUDIANTE ==================
+// GET /api/reportes/validacion-cursos/:id_estudiante
+exports.getValidacionCurso = async (req, res) => { 
     try {
         const { id_estudiante } = req.params;
 
-        // validación de que el estudiante si existe
-        const estudiante = await Estudiante.findByPk (id_estudiante, {
+        // Validación de que el estudiante existe
+        const estudiante = await Estudiante.findByPk(id_estudiante, {
             include: [{
                 model: Usuario,
                 as: "usuario"
@@ -23,41 +24,41 @@ exports.getValidacionCurso = async (requestAnimationFrame, res) => {
         });
 
         if (!estudiante) {
-            res.status(404).send({
-                message: ` No se encontró estudiante con ID = ${id_estudiante} `
+            return res.status(404).send({ 
+                message: `No se encontró estudiante con ID = ${id_estudiante}`
             });
         }
 
-        // Obtener todos los cursos del pensum de carrera del estihambre
-        const cursosDelPensum = await Curso.finAll ({
+        // Obtener todos los cursos del pensum de carrera del estudiante
+        const cursosDelPensum = await Curso.findAll({ 
             where: {
                 carrera: estudiante.carrera,
                 estado: true,
             },
-            order : [["semestre", "ASC"], ["curso_curso", "ASC"]]
+            order: [["semestre", "ASC"], ["codigo_curso", "ASC"]] 
         });
 
-        //Obtener cursos aprobados
-        const cursosAprobados = await getCursosAprobados (id_estudiante);
+        // Obtener cursos aprobados
+        const cursosAprobados = await getCursosAprobados(id_estudiante);
 
-        //Obtener cursos pendientes
-        const cursosPendientes = await getCursosPendientes (id_estudiante, cursosDelPensum);
+        // Obtener cursos pendientes
+        const cursosPendientes = await getCursosPendientes(id_estudiante, cursosDelPensum);
 
-        //Obtener cursos en proceso
-        const cursosEnProceso = await getCursosEnProceso (id_estudiante);
+        // Obtener cursos en proceso
+        const cursosEnProceso = await getCursosEnProceso(id_estudiante);
 
-        //Calcular estadísticas
+        // Calcular estadísticas
         const totalCursos = cursosDelPensum.length;
         const totalAprobados = cursosAprobados.length;
         const totalPendientes = cursosPendientes.length;
         const totalEnProceso = cursosEnProceso.length;
         const porcentajeAvance = totalCursos > 0 ? ((totalAprobados / totalCursos) * 100).toFixed(2) : 0;
 
-        // Respuesta
+        // Respuesta (tu estructura original)
         const validacion = {
             estudiante: {
                 id: estudiante.id,
-                nombre: estudiante.nombre,
+                nombre: estudiante.primer_nombre + ' ' + estudiante.primer_apellido,
                 carnet: estudiante.carnet,
                 correo: estudiante.usuario ? estudiante.usuario.correo : null,
                 carrera: estudiante.carrera || "INGENIERIA_SISTEMAS"
@@ -83,24 +84,23 @@ exports.getValidacionCurso = async (requestAnimationFrame, res) => {
         res.send(validacion);
 
     } catch (error) {
-        console.error("Error en getValidacionCursos;" , error);
+        console.error("Error en getValidacionCurso:", error);
         res.status(500).send({
-            message: "Error interno del servidor al generar validacion de cursos.",
+            message: "Error interno del servidor al generar validación de cursos.",
             error: error.message
         });
     }
 };
 
-// FUNCIONES AUXILIARES
+// =============== FUNCIONES AUXILIARES (TU CÓDIGO ORIGINAL CORREGIDO) ==================
 
-//Obtener cursos aprobados de un estudiante
+// Obtener cursos aprobados de un estudiante
 async function getCursosAprobados(id_estudiante) {
-    const cursosAprobados = await calificacion.finAll({
+    const cursosAprobados = await Calificacion.findAll({ 
         where: {
             id_estudiante: id_estudiante,
-            estado_aprobación: "APROVADO"
+            estado_aprobacion: "APROBADO"
         },
-
         include: [
             { 
                 model: Curso,
@@ -108,7 +108,7 @@ async function getCursosAprobados(id_estudiante) {
                 attributes: ["codigo_curso", "nombre_curso", "creditos", "semestre"]
             },
             {
-                model: inscripcion,
+                model: Inscripcion, 
                 as: "inscripcion",
                 attributes: ["ciclo_academico", "fecha_inscripcion"]
             }
@@ -118,13 +118,14 @@ async function getCursosAprobados(id_estudiante) {
             [{ model: Curso, as: "curso" }, "codigo_curso", "ASC"]
         ]
     });
+    
     return cursosAprobados.map(calificacion => ({
         id_curso: calificacion.id_curso,
         codigo_curso: calificacion.curso.codigo_curso,
         nombre_curso: calificacion.curso.nombre_curso,
         creditos: calificacion.curso.creditos,
         semestre: calificacion.curso.semestre,
-        nota_final: calificacion.promedio_final,
+        nota_final: calificacion.promedio_final, 
         nota_literal: calificacion.nota_literal,
         ciclo_aprobado: calificacion.ciclo_academico,
         fecha_aprobacion: calificacion.fecha_calificacion,
@@ -132,8 +133,7 @@ async function getCursosAprobados(id_estudiante) {
     }));
 }
 
-//Obtener cursos pendientes de un estudiante
-
+// Obtener cursos pendientes de un estudiante
 async function getCursosPendientes(id_estudiante, cursosDelPensum) {
     // Obtener IDs de cursos ya aprobados
     const cursosAprobadosIds = await Calificacion.findAll({
@@ -148,11 +148,11 @@ async function getCursosPendientes(id_estudiante, cursosDelPensum) {
 
     // Filtrar cursos del pensum que no están aprobados
     const cursosPendientes = cursosDelPensum.filter(curso => 
-        !idsAprobados.includes(curso.id_curso)
+        !idsAprobados.includes(curso.id) // id_curso -> id
     );
 
     return cursosPendientes.map(curso => ({
-        id_curso: curso.id_curso,
+        id_curso: curso.id, //id_curso -> id
         codigo_curso: curso.codigo_curso,
         nombre_curso: curso.nombre_curso,
         creditos: curso.creditos,
